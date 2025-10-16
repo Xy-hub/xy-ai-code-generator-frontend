@@ -1,4 +1,4 @@
-import './assets/main.css'
+// removed default main.css per global layout migration
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
@@ -16,3 +16,8 @@ app.use(router)
 app.use(Antd)
 
 app.mount('#app')
+import { healthCheck } from '@/api/healthController.ts'
+
+healthCheck().then((res) => {
+  console.log(res)
+})
