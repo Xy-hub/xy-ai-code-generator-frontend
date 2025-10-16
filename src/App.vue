@@ -66,12 +66,9 @@ nav a:first-of-type {
   .logo {
     margin: 0 2rem 0 0;
   }
-  .sdfsd {
-    sdfgdf:g dfs  
-}
 
   header .wrapper {
-    display: flex; 
+    display: flex;
     place-items: flex-start;
     flex-wrap: wrap;
   }
