@@ -19,7 +19,7 @@ router.beforeEach(async (to, from, next) => {
   }
   const toUrl = to.fullPath
   if (toUrl.startsWith('/admin')) {
-    if (!loginUser) {
+    if (!loginUser || loginUser.userName === '未登录') {
       message.error('没有权限')
       // 如果没登陆则跳转到登录页
       next(`/user/login?redirect=${to.fullPath}`)
