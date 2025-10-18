@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { h, ref, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useLoginUserStore } from '@/stores/loginUser.ts'
-import { LogoutOutlined } from '@ant-design/icons-vue'
-import { userLogout } from '@/api/userController.ts'
-import { message, type MenuProps } from 'ant-design-vue'
+import { LogoutOutlined, EditOutlined } from '@ant-design/icons-vue'
+import { userLogout, updateUser, getUserVoById } from '@/api/userController.ts'
+import { message } from 'ant-design-vue'
+import type { FormInstance } from 'ant-design-vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -65,6 +66,77 @@ const doLogout = async () => {
     message.error('退出登录失败，' + res.data.message)
   }
 }
+// 编辑用户信息相关状态
+const editModalVisible = ref(false)
+const editFormRef = ref<FormInstance>()
+const editForm = reactive<API.UserUpdateRequest>({
+  id: undefined,
+  userName: '',
+  userAvatar: '',
+  userProfile: '',
+  userRole: 'user',
+})
+
+// 编辑表单验证规则
+const editRules = {
+  userName: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 2, max: 20, message: '用户名长度在 2 到 20 个字符', trigger: 'blur' },
+  ],
+  userAvatar: [{ type: 'url', message: '请输入有效的头像URL', trigger: 'blur' }],
+}
+
+// 打开编辑弹窗
+const openEditModal = async () => {
+  try {
+    // 获取当前用户信息
+    const res = await getUserVoById({ id: loginUserStore.loginUser.id! })
+    if (res.data.data) {
+      Object.assign(editForm, {
+        id: res.data.data.id,
+        userName: res.data.data.userName,
+        userAvatar: res.data.data.userAvatar,
+        userProfile: res.data.data.userProfile,
+        userRole: res.data.data.userRole,
+      })
+      editModalVisible.value = true
+    } else {
+      message.error('获取用户信息失败')
+    }
+  } catch (error) {
+    message.error('获取用户信息失败')
+  }
+}
+
+// 确认编辑
+const handleEditOk = async () => {
+  try {
+    await editFormRef.value?.validate()
+    const res = await updateUser(editForm)
+    if (res.data.code === 0) {
+      message.success('编辑成功')
+      editModalVisible.value = false
+      // 更新本地用户信息
+      loginUserStore.setLoginUser({
+        ...loginUserStore.loginUser,
+        userName: editForm.userName,
+        userAvatar: editForm.userAvatar,
+        userProfile: editForm.userProfile,
+        userRole: editForm.userRole,
+      })
+    } else {
+      message.error('编辑失败，' + res.data.message)
+    }
+  } catch (error) {
+    console.error('编辑用户失败:', error)
+  }
+}
+
+// 取消编辑
+const handleEditCancel = () => {
+  editModalVisible.value = false
+  editFormRef.value?.resetFields()
+}
 </script>
 
 <template>
@@ -101,8 +173,12 @@ const doLogout = async () => {
             {{ loginUserStore.loginUser.userName ?? '无名' }}
           </a-space>
           <template #overlay>
-            <a-menu>
-              <a-menu-item @click="doLogout">
+            <a-menu style="min-width: 120px">
+              <a-menu-item @click="openEditModal" style="white-space: nowrap">
+                <EditOutlined />
+                编辑信息
+              </a-menu-item>
+              <a-menu-item @click="doLogout" style="white-space: nowrap">
                 <LogoutOutlined />
                 退出登录
               </a-menu-item>
@@ -115,6 +191,38 @@ const doLogout = async () => {
         <a-button type="primary" href="/user/login">登录</a-button>
       </div>
     </div>
+    <!-- 编辑用户信息弹窗 -->
+    <a-modal
+      v-model:open="editModalVisible"
+      title="编辑个人信息"
+      :width="500"
+      @ok="handleEditOk"
+      @cancel="handleEditCancel"
+    >
+      <a-form
+        :model="editForm"
+        :label-col="{ span: 6 }"
+        :wrapper-col="{ span: 16 }"
+        :rules="editRules"
+        ref="editFormRef"
+      >
+        <a-form-item label="用户名" name="userName">
+          <a-input v-model:value="editForm.userName" placeholder="请输入用户名" />
+        </a-form-item>
+        <a-form-item label="头像" name="userAvatar">
+          <a-input v-model:value="editForm.userAvatar" placeholder="请输入头像URL" />
+        </a-form-item>
+        <a-form-item label="简介" name="userProfile">
+          <a-textarea v-model:value="editForm.userProfile" placeholder="请输入个人简介" :rows="3" />
+        </a-form-item>
+        <a-form-item label="用户角色" name="userRole">
+          <a-select v-model:value="editForm.userRole" disabled>
+            <a-select-option value="user">普通用户</a-select-option>
+            <a-select-option value="admin">管理员</a-select-option>
+          </a-select>
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 

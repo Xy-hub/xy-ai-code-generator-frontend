@@ -36,17 +36,56 @@
           {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
         </template>
         <template v-else-if="column.key === 'action'">
-          <a-button danger @click="doDelete(record.id)">删除</a-button>
+          <a-space>
+            <a-button type="primary" @click="doEdit(record)">编辑</a-button>
+            <a-button danger @click="doDelete(record.id)">删除</a-button>
+          </a-space>
         </template>
       </template>
     </a-table>
+    <!-- 编辑用户弹窗 -->
+    <a-modal
+      v-model:open="editModalVisible"
+      title="编辑用户"
+      :width="600"
+      @ok="handleEditOk"
+      @cancel="handleEditCancel"
+    >
+      <a-form
+        :model="editForm"
+        :label-col="{ span: 6 }"
+        :wrapper-col="{ span: 16 }"
+        :rules="editRules"
+        ref="editFormRef"
+      >
+        <a-form-item label="用户ID" name="id">
+          <a-input v-model:value="editForm.id" disabled />
+        </a-form-item>
+        <a-form-item label="用户名" name="userName">
+          <a-input v-model:value="editForm.userName" placeholder="请输入用户名" />
+        </a-form-item>
+        <a-form-item label="头像" name="userAvatar">
+          <a-input v-model:value="editForm.userAvatar" placeholder="请输入头像URL" />
+        </a-form-item>
+        <a-form-item label="简介" name="userProfile">
+          <a-textarea v-model:value="editForm.userProfile" placeholder="请输入用户简介" :rows="3" />
+        </a-form-item>
+        <a-form-item label="用户角色" name="userRole">
+          <a-select v-model:value="editForm.userRole" placeholder="请选择用户角色">
+            <a-select-option value="user">普通用户</a-select-option>
+            <a-select-option value="admin">管理员</a-select-option>
+          </a-select>
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { deleteUser, listUserVoByPage } from '@/api/userController.ts'
+import { deleteUser, listUserVoByPage, updateUser, getUserVoById } from '@/api/userController.ts'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
+import type { FormInstance } from 'ant-design-vue'
 
 const columns = [
   {
@@ -93,6 +132,27 @@ const searchParams = reactive<API.UserQueryRequest>({
   pageSize: 10,
 })
 
+// 编辑相关状态
+const editModalVisible = ref(false)
+const editFormRef = ref<FormInstance>()
+const editForm = reactive<API.UserUpdateRequest>({
+  id: undefined,
+  userName: '',
+  userAvatar: '',
+  userProfile: '',
+  userRole: 'user',
+})
+
+// 编辑表单验证规则
+const editRules = {
+  userName: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 2, max: 20, message: '用户名长度在 2 到 20 个字符', trigger: 'blur' },
+  ],
+  userRole: [{ required: true, message: '请选择用户角色', trigger: 'change' }],
+  userAvatar: [{ type: 'url', message: '请输入有效的头像URL', trigger: 'blur' }],
+}
+
 // 获取数据
 const fetchData = async () => {
   const res = await listUserVoByPage({
@@ -129,6 +189,52 @@ const doSearch = () => {
   // 重置页码
   searchParams.pageNum = 1
   fetchData()
+}
+
+// 编辑用户
+const doEdit = async (record: API.UserVO) => {
+  try {
+    // 获取完整的用户信息
+    const res = await getUserVoById({ id: record.id! })
+    if (res.data.data) {
+      Object.assign(editForm, {
+        id: res.data.data.id,
+        userName: res.data.data.userName,
+        userAvatar: res.data.data.userAvatar,
+        userProfile: res.data.data.userProfile,
+        userRole: res.data.data.userRole,
+      })
+      editModalVisible.value = true
+    } else {
+      message.error('获取用户信息失败')
+    }
+  } catch (error) {
+    message.error('获取用户信息失败')
+  }
+}
+
+// 确认编辑
+const handleEditOk = async () => {
+  try {
+    await editFormRef.value?.validate()
+    const res = await updateUser(editForm)
+    if (res.data.code === 0) {
+      message.success('编辑成功')
+      editModalVisible.value = false
+      // 刷新数据
+      fetchData()
+    } else {
+      message.error('编辑失败，' + res.data.message)
+    }
+  } catch (error) {
+    console.error('编辑用户失败:', error)
+  }
+}
+
+// 取消编辑
+const handleEditCancel = () => {
+  editModalVisible.value = false
+  editFormRef.value?.resetFields()
 }
 
 // 删除数据
