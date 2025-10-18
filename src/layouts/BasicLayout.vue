@@ -9,8 +9,8 @@ import GlobalFooter from '../components/GlobalFooter.vue'
       <GlobalHeader />
     </a-layout-header>
 
-    <a-layout-content style="padding: 24px 32px; background: #fff;">
-      <div style="max-width: 1200px; margin: 16px auto; padding: 16px; min-height: calc(100vh - 64px - 64px - 64px)">
+    <a-layout-content style="padding: 24px 32px; background: #fff">
+      <div style="margin: 16px auto; padding: 16px; min-height: calc(100vh - 64px - 64px - 64px)">
         <router-view />
       </div>
     </a-layout-content>
@@ -19,7 +19,6 @@ import GlobalFooter from '../components/GlobalFooter.vue'
       <GlobalFooter />
     </a-layout-footer>
   </a-layout>
-  
 </template>
 
 <style scoped>
@@ -30,5 +29,3 @@ import GlobalFooter from '../components/GlobalFooter.vue'
   }
 }
 </style>
-
-
