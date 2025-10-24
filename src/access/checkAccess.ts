@@ -18,6 +18,8 @@ const checkAccess = (loginUser: any, needAccess = ACCESS_ENUM.NOT_LOGIN) => {
     if (loginUserAccess === ACCESS_ENUM.NOT_LOGIN) {
       return false
     }
+    // 用户已登录，有权限访问
+    return true
   }
   // 如果需要管理员权限
   if (needAccess === ACCESS_ENUM.ADMIN) {
@@ -25,8 +27,10 @@ const checkAccess = (loginUser: any, needAccess = ACCESS_ENUM.NOT_LOGIN) => {
     if (loginUserAccess !== ACCESS_ENUM.ADMIN) {
       return false
     }
+    // 用户是管理员，有权限访问
+    return true
   }
-  return true
+  return false
 }
 
 export default checkAccess
