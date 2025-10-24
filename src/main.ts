@@ -1,5 +1,3 @@
-// removed default main.css per global layout migration
-
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 

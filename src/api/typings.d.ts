@@ -186,8 +186,8 @@ declare namespace API {
   }
 
   type UserLoginRequest = {
-    userAccount: string
-    userPassword: string
+    userAccount?: string
+    userPassword?: string
   }
 
   type UserQueryRequest = {
@@ -203,9 +203,9 @@ declare namespace API {
   }
 
   type UserRegisterRequest = {
-    userAccount: string
-    userPassword: string
-    checkPassword: string
+    userAccount?: string
+    userPassword?: string
+    checkPassword?: string
   }
 
   type UserUpdateRequest = {
