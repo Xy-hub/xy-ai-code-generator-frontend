@@ -6,6 +6,7 @@ import { useLoginUserStore } from '@/stores/loginUser'
 import { addApp, listMyAppVoByPage, listGoodAppVoByPage } from '@/api/appController'
 import { getDeployUrl } from '@/config/env'
 import AppCard from '@/components/AppCard.vue'
+import BasePagination from '@/components/BasePagination.vue'
 
 const router = useRouter()
 const loginUserStore = useLoginUserStore()
@@ -235,16 +236,14 @@ onMounted(() => {
             @view-work="viewWork"
           />
         </div>
-        <div class="pagination-wrapper">
-          <a-pagination
-            v-model:current="myAppsPage.current"
-            v-model:page-size="myAppsPage.pageSize"
-            :total="myAppsPage.total"
-            :show-size-changer="false"
-            :show-total="(total: number) => `共 ${total} 个应用`"
-            @change="loadMyApps"
-          />
-        </div>
+        <BasePagination
+          v-model:current="myAppsPage.current"
+          v-model:page-size="myAppsPage.pageSize"
+          :total="myAppsPage.total"
+          :show-size-changer="false"
+          :show-total="(total: number) => `共 ${total} 个应用`"
+          @change="loadMyApps"
+        />
       </div>
 
       <!-- 精选案例 -->
@@ -260,16 +259,14 @@ onMounted(() => {
             @view-work="viewWork"
           />
         </div>
-        <div class="pagination-wrapper">
-          <a-pagination
-            v-model:current="featuredAppsPage.current"
-            v-model:page-size="featuredAppsPage.pageSize"
-            :total="featuredAppsPage.total"
-            :show-size-changer="false"
-            :show-total="(total: number) => `共 ${total} 个案例`"
-            @change="loadFeaturedApps"
-          />
-        </div>
+        <BasePagination
+          v-model:current="featuredAppsPage.current"
+          v-model:page-size="featuredAppsPage.pageSize"
+          :total="featuredAppsPage.total"
+          :show-size-changer="false"
+          :show-total="(total: number) => `共 ${total} 个案例`"
+          @change="loadFeaturedApps"
+        />
       </div>
     </div>
   </div>

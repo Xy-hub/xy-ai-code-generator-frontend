@@ -8,6 +8,7 @@ declare namespace API {
     appName?: string
     cover?: string
     priority?: number
+    isPublic?: number
   }
 
   type AppDeployRequest = {
@@ -26,12 +27,14 @@ declare namespace API {
     codeGenType?: string
     deployKey?: string
     priority?: number
+    isPublic?: number
     userId?: number
   }
 
   type AppUpdateRequest = {
     id?: number
     appName?: string
+    isPublic?: number
   }
 
   type AppVO = {
@@ -43,6 +46,7 @@ declare namespace API {
     deployKey?: string
     deployedTime?: string
     priority?: number
+    isPublic?: number
     userId?: number
     createTime?: string
     updateTime?: string
@@ -186,8 +190,8 @@ declare namespace API {
   }
 
   type UserLoginRequest = {
-    userAccount?: string
-    userPassword?: string
+    userAccount: string
+    userPassword: string
   }
 
   type UserQueryRequest = {
@@ -203,9 +207,9 @@ declare namespace API {
   }
 
   type UserRegisterRequest = {
-    userAccount?: string
-    userPassword?: string
-    checkPassword?: string
+    userAccount: string
+    userPassword: string
+    checkPassword: string
   }
 
   type UserUpdateRequest = {

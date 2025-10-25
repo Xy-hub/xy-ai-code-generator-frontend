@@ -3,7 +3,19 @@
     <!-- 顶部栏 -->
     <div class="header-bar">
       <div class="header-left">
-        <h1 class="app-name">{{ appInfo?.appName || '网站生成器' }}</h1>
+        <a-input
+          v-if="isEditingAppName"
+          v-model:value="editingAppName"
+          class="app-name-input"
+          :maxlength="50"
+          @blur="saveAppName"
+          @keydown.enter="saveAppName"
+          @keydown.escape="cancelEditAppName"
+          ref="appNameInputRef"
+        />
+        <h1 v-else class="app-name" @click="startEditAppName" :class="{ editable: isOwner }">
+          {{ appInfo?.appName || '网站生成器' }}
+        </h1>
       </div>
       <div class="header-right">
         <a-button type="default" @click="showAppDetail">
@@ -147,6 +159,7 @@ import {
   getAppVoById,
   deployApp as deployAppApi,
   deleteApp as deleteAppApi,
+  updateApp as updateAppApi,
 } from '@/api/appController'
 import { CodeGenTypeEnum } from '@/utils/codeGenTypes'
 import request from '@/request'
@@ -205,6 +218,11 @@ const isAdmin = computed(() => {
 
 // 应用详情相关
 const appDetailVisible = ref(false)
+
+// 应用名称编辑相关
+const isEditingAppName = ref(false)
+const editingAppName = ref('')
+const appNameInputRef = ref()
 
 // 显示应用详情
 const showAppDetail = () => {
@@ -484,6 +502,69 @@ const deleteApp = async () => {
   }
 }
 
+// 开始编辑应用名称
+const startEditAppName = () => {
+  if (!isOwner.value) return
+
+  isEditingAppName.value = true
+  editingAppName.value = appInfo.value?.appName || ''
+
+  nextTick(() => {
+    appNameInputRef.value?.focus()
+  })
+}
+
+// 保存应用名称
+const saveAppName = async () => {
+  if (!isEditingAppName.value || !appInfo.value?.id) return
+
+  const newName = editingAppName.value.trim()
+
+  // 如果名称没有变化，直接取消编辑
+  if (newName === appInfo.value.appName) {
+    cancelEditAppName()
+    return
+  }
+
+  // 验证名称
+  if (!newName) {
+    message.error('应用名称不能为空')
+    return
+  }
+
+  if (newName.length > 50) {
+    message.error('应用名称不能超过50个字符')
+    return
+  }
+
+  try {
+    const res = await updateAppApi({
+      id: appInfo.value.id,
+      appName: newName,
+    })
+
+    if (res.data.code === 0) {
+      // 更新本地数据
+      if (appInfo.value) {
+        appInfo.value.appName = newName
+      }
+      message.success('应用名称更新成功')
+      isEditingAppName.value = false
+    } else {
+      message.error('更新失败：' + res.data.message)
+    }
+  } catch (error) {
+    console.error('更新应用名称失败：', error)
+    message.error('更新失败，请重试')
+  }
+}
+
+// 取消编辑应用名称
+const cancelEditAppName = () => {
+  isEditingAppName.value = false
+  editingAppName.value = ''
+}
+
 // 页面加载时获取应用信息
 onMounted(() => {
   fetchAppInfo()
@@ -523,6 +604,43 @@ onUnmounted(() => {
   font-size: 18px;
   font-weight: 600;
   color: #1a1a1a;
+  cursor: default;
+  transition: all 0.2s ease;
+}
+
+.app-name.editable {
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.app-name.editable:hover {
+  background-color: #fafafa;
+  border-color: #e8e8e8;
+}
+
+.app-name-input {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  padding: 6px 12px;
+  min-width: 200px;
+  background-color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.app-name-input:hover {
+  border-color: #d9d9d9;
+}
+
+.app-name-input:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 1px rgba(24, 144, 255, 0.1);
+  outline: none;
 }
 
 .header-right {

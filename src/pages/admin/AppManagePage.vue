@@ -52,8 +52,10 @@
           {{ formatCodeGenType(record.codeGenType) }}
         </template>
         <template v-else-if="column.dataIndex === 'priority'">
-          <a-tag v-if="record.priority === 99" color="gold">精选</a-tag>
-          <span v-else>{{ record.priority || 0 }}</span>
+          <StatusTag type="priority" :value="record.priority" />
+        </template>
+        <template v-else-if="column.dataIndex === 'isPublic'">
+          <StatusTag type="isPublic" :value="record.isPublic" />
         </template>
         <template v-else-if="column.dataIndex === 'deployedTime'">
           <span v-if="record.deployedTime">
@@ -96,6 +98,7 @@ import { listAppVoByPageByAdmin, deleteAppByAdmin, updateAppByAdmin } from '@/ap
 import { CODE_GEN_TYPE_OPTIONS, formatCodeGenType } from '@/utils/codeGenTypes'
 import { formatTime } from '@/utils/time'
 import UserInfo from '@/components/UserInfo.vue'
+import StatusTag from '@/components/StatusTag.vue'
 
 const router = useRouter()
 
@@ -130,6 +133,11 @@ const columns = [
     title: '优先级',
     dataIndex: 'priority',
     width: 80,
+  },
+  {
+    title: '公开范围',
+    dataIndex: 'isPublic',
+    width: 100,
   },
   {
     title: '部署时间',

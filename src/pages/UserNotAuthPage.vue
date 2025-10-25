@@ -1,7 +1,7 @@
 <template>
   <div id="userNotAuthPage">
     <div class="error-icon">
-      <a-icon name="exclamation-circle" :size="64" />
+      <ExclamationCircleOutlined :style="{ fontSize: '64px' }" />
     </div>
     <h2 class="title">访问受限</h2>
     <div class="desc">抱歉，您没有权限访问此页面</div>
@@ -18,6 +18,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 
 const router = useRouter()
 

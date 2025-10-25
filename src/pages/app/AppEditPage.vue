@@ -22,6 +22,13 @@
             />
           </a-form-item>
 
+          <a-form-item label="公开范围" name="isPublic">
+            <a-radio-group v-model:value="formData.isPublic">
+              <a-radio :value="1">公开</a-radio>
+              <a-radio :value="0">私有</a-radio>
+            </a-radio-group>
+          </a-form-item>
+
           <a-form-item
             v-if="isAdmin"
             label="应用封面"
@@ -141,6 +148,7 @@ const formRef = ref<FormInstance>()
 // 表单数据
 const formData = reactive({
   appName: '',
+  isPublic: 0,
   cover: '',
   priority: 0,
   initPrompt: '',
@@ -187,6 +195,7 @@ const fetchAppInfo = async () => {
 
       // 填充表单数据
       formData.appName = appInfo.value.appName || ''
+      formData.isPublic = appInfo.value.isPublic ?? 0
       formData.cover = appInfo.value.cover || ''
       formData.priority = appInfo.value.priority || 0
       formData.initPrompt = appInfo.value.initPrompt || ''
@@ -219,12 +228,14 @@ const handleSubmit = async () => {
         appName: formData.appName,
         cover: formData.cover,
         priority: formData.priority,
+        isPublic: formData.isPublic,
       })
     } else {
-      // 普通用户只能修改应用名称
+      // 普通用户可以修改应用名称和公开范围
       res = await updateApp({
         id: appInfo.value.id,
         appName: formData.appName,
+        isPublic: formData.isPublic,
       })
     }
 
@@ -247,6 +258,7 @@ const handleSubmit = async () => {
 const resetForm = () => {
   if (appInfo.value) {
     formData.appName = appInfo.value.appName || ''
+    formData.isPublic = appInfo.value.isPublic ?? 0
     formData.cover = appInfo.value.cover || ''
     formData.priority = appInfo.value.priority || 0
   }

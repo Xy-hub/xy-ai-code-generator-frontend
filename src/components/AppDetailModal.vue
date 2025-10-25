@@ -1,17 +1,39 @@
 <template>
-  <a-modal v-model:open="visible" title="应用详情" :footer="null" width="500px">
+  <a-modal v-model:open="visible" title="应用详情" :footer="null" width="600px">
     <div class="app-detail-content">
       <!-- 应用基础信息 -->
-      <div class="app-basic-info">
-        <div class="info-item">
-          <span class="info-label">创建者：</span>
+      <a-descriptions :column="2" bordered>
+        <a-descriptions-item label="应用名称">
+          {{ app?.appName || '未命名应用' }}
+        </a-descriptions-item>
+        <a-descriptions-item label="创建者">
           <UserInfo :user="app?.user" size="small" />
-        </div>
-        <div class="info-item">
-          <span class="info-label">创建时间：</span>
-          <span>{{ formatTime(app?.createTime) }}</span>
-        </div>
-      </div>
+        </a-descriptions-item>
+        <a-descriptions-item label="生成类型">
+          {{ formatCodeGenType(app?.codeGenType) }}
+        </a-descriptions-item>
+        <a-descriptions-item label="公开范围">
+          <StatusTag type="isPublic" :value="app?.isPublic" />
+        </a-descriptions-item>
+        <a-descriptions-item label="优先级">
+          <StatusTag type="priority" :value="app?.priority" />
+        </a-descriptions-item>
+        <a-descriptions-item label="部署状态">
+          <StatusTag type="deployed" :value="!!app?.deployKey" />
+        </a-descriptions-item>
+        <a-descriptions-item label="创建时间">
+          {{ formatTime(app?.createTime) }}
+        </a-descriptions-item>
+        <a-descriptions-item label="更新时间">
+          {{ formatTime(app?.updateTime) }}
+        </a-descriptions-item>
+        <a-descriptions-item label="部署时间" :span="2">
+          {{ app?.deployedTime ? formatTime(app.deployedTime) : '未部署' }}
+        </a-descriptions-item>
+        <a-descriptions-item label="初始提示词" :span="2">
+          <div class="prompt-text">{{ app?.initPrompt || '无' }}</div>
+        </a-descriptions-item>
+      </a-descriptions>
 
       <!-- 操作栏（仅本人或管理员可见） -->
       <div v-if="showActions" class="app-actions">
@@ -45,7 +67,9 @@
 import { computed } from 'vue'
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons-vue'
 import UserInfo from './UserInfo.vue'
+import StatusTag from './StatusTag.vue'
 import { formatTime } from '@/utils/time'
+import { formatCodeGenType } from '@/utils/codeGenTypes'
 
 interface Props {
   open: boolean
@@ -81,28 +105,18 @@ const handleDelete = () => {
 
 <style scoped>
 .app-detail-content {
-  padding: 8px 0;
-}
-
-.app-basic-info {
-  margin-bottom: 24px;
-}
-
-.info-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.info-label {
-  width: 80px;
-  color: #666;
-  font-size: 14px;
-  flex-shrink: 0;
+  padding: 16px 0;
 }
 
 .app-actions {
-  padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
+  margin-top: 24px;
+  text-align: center;
+}
+
+.prompt-text {
+  max-width: 100%;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  line-height: 1.5;
 }
 </style>
