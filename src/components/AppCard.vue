@@ -59,18 +59,24 @@ const handleViewWork = () => {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  /* 移除 backdrop-filter 以提升性能 */
   border: 1px solid rgba(255, 255, 255, 0.2);
+  /* 简化过渡动画 */
   transition:
-    transform 0.3s,
-    box-shadow 0.3s;
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   cursor: pointer;
+  /* 启用硬件加速 */
+  transform: translateZ(0);
+  /* 优化渲染性能 */
+  contain: layout style paint;
 }
 
 .app-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+  /* 减少移动距离 */
+  transform: translateY(-4px) translateZ(0);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
 }
 
 .app-preview {
@@ -87,6 +93,8 @@ const handleViewWork = () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* 优化图片渲染 */
+  image-rendering: -webkit-optimize-contrast;
 }
 
 .app-placeholder {
@@ -105,7 +113,8 @@ const handleViewWork = () => {
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.3s;
+  /* 简化过渡动画 */
+  transition: opacity 0.2s ease;
 }
 
 .app-card:hover .app-overlay {
