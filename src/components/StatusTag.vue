@@ -6,7 +6,7 @@
 import { computed } from 'vue'
 
 interface Props {
-  type: 'priority' | 'isPublic' | 'deployed' | 'userRole'
+  type: 'priority' | 'isPublic' | 'deployed' | 'userRole' | 'messageType' | 'isDelete'
   value: number | string | boolean | undefined
 }
 
@@ -33,6 +33,16 @@ const tagConfig = computed(() => {
       return {
         color: props.value === 'admin' ? 'red' : 'blue',
         text: props.value === 'admin' ? '管理员' : '普通用户',
+      }
+    case 'messageType':
+      return {
+        color: props.value === 'user' ? 'blue' : 'green',
+        text: props.value === 'user' ? '用户消息' : 'AI消息',
+      }
+    case 'isDelete':
+      return {
+        color: props.value === 1 ? 'red' : 'green',
+        text: props.value === 1 ? '已删除' : '正常',
       }
     default:
       return {
