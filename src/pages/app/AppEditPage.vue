@@ -38,7 +38,7 @@
             <a-input v-model:value="formData.cover" placeholder="请输入封面图片链接" />
             <div v-if="formData.cover" class="cover-preview">
               <a-image
-                :src="formData.cover"
+                :src="toAbsoluteUrl(formData.cover)"
                 :width="200"
                 :height="150"
                 fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
@@ -134,6 +134,7 @@ import { formatTime } from '@/utils/time'
 import UserInfo from '@/components/UserInfo.vue'
 import { getStaticPreviewUrl } from '@/config/env'
 import type { FormInstance } from 'ant-design-vue'
+import { toAbsoluteUrl } from '@/utils/url'
 
 const route = useRoute()
 const router = useRouter()

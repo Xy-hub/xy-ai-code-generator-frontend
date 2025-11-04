@@ -40,7 +40,12 @@
     >
       <template #bodyCell="{ column, record }">
         <template v-if="column.dataIndex === 'cover'">
-          <a-image v-if="record.cover" :src="record.cover" :width="80" :height="60" />
+          <a-image
+            v-if="record.cover"
+            :src="toAbsoluteUrl(record.cover)"
+            :width="80"
+            :height="60"
+          />
           <div v-else class="no-cover">无封面</div>
         </template>
         <template v-else-if="column.dataIndex === 'initPrompt'">
@@ -99,6 +104,7 @@ import { CODE_GEN_TYPE_OPTIONS, formatCodeGenType } from '@/utils/codeGenTypes'
 import { formatTime } from '@/utils/time'
 import UserInfo from '@/components/UserInfo.vue'
 import StatusTag from '@/components/StatusTag.vue'
+import { toAbsoluteUrl } from '@/utils/url'
 
 const router = useRouter()
 
