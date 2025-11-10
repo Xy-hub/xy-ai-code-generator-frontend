@@ -18,7 +18,9 @@
           <UserInfo :user="app?.user" size="small" />
         </a-descriptions-item>
         <a-descriptions-item label="生成类型">
-          <div class="text-content">{{ formatCodeGenType(app?.codeGenType) }}</div>
+          <a-tag color="blue" class="code-gen-type-tag">
+            {{ formatCodeGenType(app?.codeGenType) }}
+          </a-tag>
         </a-descriptions-item>
         <a-descriptions-item label="公开范围">
           <StatusTag type="isPublic" :value="app?.isPublic" />

@@ -132,8 +132,8 @@ declare namespace API {
     id?: number
     message?: string
     messageType?: string
-    appId?: number | string
-    userId?: number | string
+    appId?: number
+    userId?: number
     lastCreateTime?: string
   }
 
@@ -144,6 +144,10 @@ declare namespace API {
 
   type DeleteRequest = {
     id?: number
+  }
+
+  type downloadAppCodeParams = {
+    appId: number
   }
 
   type getAppVOByIdByAdminParams = {
