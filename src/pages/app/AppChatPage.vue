@@ -92,6 +92,16 @@
 
         <!-- 用户消息输入框 -->
         <div class="input-container">
+          <!-- 选中元素信息提示 -->
+          <div v-if="selectedElement" class="selected-element-alert">
+            <a-alert
+              :message="getSelectedElementMessage()"
+              type="info"
+              closable
+              @close="clearSelectedElement"
+              show-icon
+            />
+          </div>
           <div class="input-wrapper">
             <a-tooltip v-if="!isOwner" title="无法在别人的作品下对话哦~" placement="top">
               <a-textarea
@@ -133,6 +143,17 @@
         <div class="preview-header">
           <h3>生成后的网页展示</h3>
           <div class="preview-actions">
+            <a-button
+              v-if="previewUrl && isOwner"
+              type="link"
+              @click="toggleEditMode"
+              :disabled="isGenerating"
+            >
+              <template #icon>
+                <EditOutlined />
+              </template>
+              {{ isEditMode ? '退出编辑' : '编辑模式' }}
+            </a-button>
             <a-button v-if="previewUrl" type="link" @click="openInNewTab">
               <template #icon>
                 <ExportOutlined />
@@ -154,7 +175,9 @@
             v-else
             :src="previewUrl"
             class="preview-iframe"
+            :class="{ 'edit-mode': isEditMode }"
             frameborder="0"
+            ref="previewIframe"
             @load="onIframeLoad"
           ></iframe>
         </div>
@@ -207,7 +230,9 @@ import {
   InfoCircleOutlined,
   ArrowUpOutlined,
   DownloadOutlined,
+  EditOutlined,
 } from '@ant-design/icons-vue'
+import { initVisualEditor, disableEditMode, type SelectedElement } from '@/utils/visualEditor'
 
 const route = useRoute()
 const router = useRouter()
@@ -241,6 +266,12 @@ const lastCreateTime = ref<string>()
 // 预览相关
 const previewUrl = ref('')
 const previewReady = ref(false)
+const previewIframe = ref<HTMLIFrameElement>()
+
+// 编辑模式相关
+const isEditMode = ref(false)
+const selectedElement = ref<SelectedElement | null>(null)
+let visualEditorCleanup: (() => void) | null = null
 
 // 部署相关
 const deploying = ref(false)
@@ -406,8 +437,20 @@ const sendMessage = async () => {
     return
   }
 
-  const message = userInput.value.trim()
+  let message = userInput.value.trim()
+
+  // 如果有选中的元素，将元素信息添加到提示词中
+  if (selectedElement.value) {
+    const elementInfo = selectedElement.value
+    const elementDesc = `[选中元素: ${elementInfo.tagName}${elementInfo.id ? `#${elementInfo.id}` : ''}${elementInfo.className ? `.${elementInfo.className.split(' ')[0]}` : ''}${elementInfo.textContent ? ` (${elementInfo.textContent})` : ''}]`
+    message = `${message}\n\n${elementDesc}`
+  }
+
   userInput.value = ''
+
+  // 清除选中元素并退出编辑模式
+  clearSelectedElement()
+  exitEditMode()
 
   // 添加用户消息
   messages.value.push({
@@ -586,6 +629,106 @@ const openDeployedSite = () => {
 // iframe加载完成
 const onIframeLoad = () => {
   previewReady.value = true
+  // 如果处于编辑模式，重新初始化编辑器
+  if (isEditMode.value && previewIframe.value) {
+    initEditMode()
+  }
+}
+
+// 切换编辑模式
+const toggleEditMode = () => {
+  if (isEditMode.value) {
+    exitEditMode()
+  } else {
+    enterEditMode()
+  }
+}
+
+// 进入编辑模式
+const enterEditMode = () => {
+  if (!previewIframe.value || !previewUrl.value) {
+    message.warning('预览页面未加载完成')
+    return
+  }
+
+  isEditMode.value = true
+  initEditMode()
+}
+
+// 退出编辑模式
+const exitEditMode = () => {
+  isEditMode.value = false
+  clearSelectedElement()
+
+  if (visualEditorCleanup) {
+    visualEditorCleanup()
+    visualEditorCleanup = null
+  }
+
+  if (previewIframe.value) {
+    disableEditMode(previewIframe.value)
+  }
+}
+
+// 初始化编辑模式
+const initEditMode = () => {
+  if (!previewIframe.value) {
+    return
+  }
+
+  // 清理之前的编辑器
+  if (visualEditorCleanup) {
+    visualEditorCleanup()
+  }
+
+  // 等待 iframe 完全加载
+  const iframe = previewIframe.value
+  if (!iframe.contentWindow || !iframe.contentDocument) {
+    // 如果 iframe 还未加载完成，等待一下再试
+    setTimeout(() => {
+      if (isEditMode.value) {
+        initEditMode()
+      }
+    }, 100)
+    return
+  }
+
+  // 初始化可视化编辑器
+  visualEditorCleanup = initVisualEditor(iframe, (element: SelectedElement | null) => {
+    if (element) {
+      selectedElement.value = element
+    } else {
+      selectedElement.value = null
+    }
+  })
+}
+
+// 清除选中元素
+const clearSelectedElement = () => {
+  selectedElement.value = null
+}
+
+// 获取选中元素信息消息
+const getSelectedElementMessage = (): string => {
+  if (!selectedElement.value) {
+    return ''
+  }
+
+  const el = selectedElement.value
+  const parts: string[] = []
+
+  parts.push(`标签: ${el.tagName}`)
+  if (el.id) {
+    parts.push(`ID: ${el.id}`)
+  }
+  if (el.className) {
+    parts.push(`类名: ${el.className.split(' ')[0]}`)
+  }
+  if (el.textContent) {
+    parts.push(`文本: ${el.textContent}`)
+  }
+
+  return `已选中元素 - ${parts.join(' | ')}`
 }
 
 // 编辑应用
@@ -726,6 +869,11 @@ onMounted(() => {
 // 清理资源
 onUnmounted(() => {
   // EventSource 会在组件卸载时自动清理
+  // 清理可视化编辑器
+  if (visualEditorCleanup) {
+    visualEditorCleanup()
+    visualEditorCleanup = null
+  }
 })
 </script>
 
@@ -919,6 +1067,10 @@ onUnmounted(() => {
   right: 8px;
 }
 
+.selected-element-alert {
+  margin-bottom: 12px;
+}
+
 /* 右侧预览区域 */
 .preview-section {
   flex: 3;
@@ -986,6 +1138,10 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   border: none;
+}
+
+.preview-iframe.edit-mode {
+  cursor: crosshair;
 }
 
 /* 响应式设计 */
