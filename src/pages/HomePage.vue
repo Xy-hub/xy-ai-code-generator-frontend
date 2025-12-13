@@ -5,6 +5,7 @@ import { message } from 'ant-design-vue'
 import { useLoginUserStore } from '@/stores/loginUser'
 import { addApp, listMyAppVoByPage, listGoodAppVoByPage } from '@/api/appController'
 import { getDeployUrl } from '@/config/env'
+import { CodeGenTypeEnum } from '@/utils/codeGenTypes'
 import AppCard from '@/components/AppCard.vue'
 import BasePagination from '@/components/BasePagination.vue'
 
@@ -125,7 +126,11 @@ const viewChat = (appId: string | number | undefined) => {
 // 查看作品
 const viewWork = (app: API.AppVO) => {
   if (app.deployKey) {
-    const url = getDeployUrl(app.deployKey)
+    let url = getDeployUrl(app.deployKey)
+    // 如果是vue类型，需要在路径后拼接dist/
+    if (app.codeGenType === CodeGenTypeEnum.VUE_PROJECT) {
+      url = `${url}/dist/`
+    }
     window.open(url, '_blank')
   }
 }
